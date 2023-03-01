@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon"
+        href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;🚀&lt;/text&gt;&lt;/svg&gt;">
+    <title>Live Bus Times</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Launch new departure board</h1>
+    <h2>Find your stop</h2>
+    <p>Find your bus stop by typing its name or its ATCO code:</p>
+    <form id="searchbox">
+        <input type="text" id="query">
+        <input type="submit" value="search">
+    </form>
+    <h2>Results</h2>
+    <p>Click on one of the links below to launch a departure board for that stop:</p>
+    <pre id="result">Please perform a search first</pre>
+    <script src="live.js"></script>
+    <script>
+        let formElement = document.getElementById("searchbox");
+        formElement.addEventListener("submit", (event) => {
+            event.preventDefault();
+            findStop(document.getElementById("query").value).then((result) => {
+                let content = "";
+                for (const i of result) {
+                    let n = i["name"];
+                    let a = i["atco"];
+                    let sp = "".padEnd(70 - n.length); // spaces to pad ATCO code to the right
+                    content += `<a href="board.html?atco=${a}" target="_blank">${n}</a>${sp}${a}\n`;
+                }
+                document.getElementById("result").innerHTML = content;
+            });
+        });
+    </script>
+</body>
+
+</html>

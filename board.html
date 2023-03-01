@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon"
+        href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;🚍&lt;/text&gt;&lt;/svg&gt;">
+    <title>Live Bus Times</title>
+    <style>
+        @font-face {
+            font-family: DotMatrix;
+            src: url(resources/dot-matrix.ttf);
+        }
+
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 50pt;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        progress {
+            height: 0.2em;
+            width: 100%;
+            display: block;
+        }
+
+        .destination {
+            font-family: DotMatrix;
+            color: orange;
+        }
+
+        .icon {
+            height: 0.75em;
+            width: 0.75em;
+            margin-right: 0.1em;
+        }
+
+        .live {
+            color: lime;
+        }
+
+        .badge {
+            margin: 0.1em auto;
+            width: 3em;
+            padding: 0em 0.2em;
+            border: 0.05em solid white;
+            border-radius: 0.4em;
+            text-shadow: 0.05em 0.05em 0.1em black;
+        }
+
+        #time,
+        .live {
+            text-align: right;
+            white-space: pre;
+        }
+
+        .marquee {
+            width: 17.5em;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .marquee p {
+            margin: 0;
+            white-space: pre;
+            animation: marquee 10s linear infinite;
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 23%;">Service</th>
+                <th>Destination</th>
+                <th style="width: 20%;">Due</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <div class="badge">
+                        <img class="icon" src="data:,"><span class="route">0</span>
+                    </div>
+                </td>
+                <td class="destination">INITIALIZING PLEASE WAIT</td>
+                <td class="live">now</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="badge">
+                        <img class="icon" src="data:,"><span class="route">1</span>
+                    </div>
+                </td>
+                <td class="destination">INITIALIZING PLEASE WAIT</td>
+                <td class="live">now</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="badge">
+                        <img class="icon" src="data:,"><span class="route">2</span>
+                    </div>
+                </td>
+                <td class="destination">INITIALIZING PLEASE WAIT</td>
+                <td class="live">now</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="badge">
+                        <img class="icon" src="data:,"><span class="route">3</span>
+                    </div>
+                </td>
+                <td class="destination">INITIALIZING PLEASE WAIT</td>
+                <td class="live">now</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="badge">
+                        <img class="icon" src="data:,"><span class="route">4</span>
+                    </div>
+                </td>
+                <td class="destination">INITIALIZING PLEASE WAIT</td>
+                <td class="live">now</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="badge">
+                        <img class="icon" src="data:,"><span class="route">5</span>
+                    </div>
+                </td>
+                <td class="destination">INITIALIZING PLEASE WAIT</td>
+                <td class="live">now</td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="marquee">
+                        <p id="info">Loading information...</p>
+                    </div>
+                </td>
+                <td id="time">00:00</td>
+            </tr>
+        </tbody>
+    </table>
+    <progress max="10" value="10"></progress>
+    <script src="live.js"></script>
+    <script>
+
+        window.setInterval(() => {
+            let timeElement = document.getElementById("time");
+            let time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: "2-digit", hour12: false });
+            if (timeElement.innerText.includes(":")) {
+                timeElement.innerText = time.replace(":", " ");
+            } else {
+                timeElement.innerText = time;
+            }
+        }, 1000);
+
+        const stopID = new URL(window.location).searchParams.get("atco") || "6090846";
+
+        findStop(stopID).then((stopList) => {
+            let stopName = stopList[0]["name"];
+            document.getElementById("info").innerText = stopName;
+        });
+
+        let busBoard = new Board();
+
+        fetch("/www.firstbus.co.uk/api/get-next-bus?stop=" + stopID).then(
+            res => {
+                if (res.ok) {
+                    res.json().then(data => busBoard.parseFirstBus(data));
+                } else {
+                    console.error(res);
+                }
+            }
+        ).catch(error => console.error(error));
+
+        fetch("/www.westcoastmotors.co.uk/stops/" + stopID, { "headers": { "X-Requested-With": "XMLHttpRequest" } }).then(
+            res => {
+                if (res.ok) {
+                    res.text().then(data => busBoard.parseWebBasedBus(data, "W"));
+                } else {
+                    console.error(res);
+                }
+            }
+        ).catch(error => console.error(error));
+
+        fetch("/www.mcgillsscotlandeast.co.uk/stops/" + stopID, { "headers": { "X-Requested-With": "XMLHttpRequest" } }).then(
+            res => {
+                if (res.ok) {
+                    res.text().then(data => busBoard.parseWebBasedBus(data, "B"));
+                } else {
+                    console.error(res);
+                }
+            }
+        ).catch(error => console.error(error));
+
+    </script>
+</body>
+
+</html>

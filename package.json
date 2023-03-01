@@ -1,0 +1,24 @@
+{
+  "name": "bustimes",
+  "version": "0.0.1",
+  "description": "A real-time bus departure board for the city of Glasgow",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fengshuo2004/BusTimes.git"
+  },
+  "author": "fengshuo2004",
+  "license": "GPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/fengshuo2004/BusTimes/issues"
+  },
+  "homepage": "https://github.com/fengshuo2004/BusTimes#readme",
+  "dependencies": {
+    "cors-anywhere": "^0.4.4",
+    "http-server": "^14.1.1"
+  }
+}
